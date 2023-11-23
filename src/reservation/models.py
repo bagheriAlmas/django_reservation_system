@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 
 class Listing(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, blank=True, null=True)
     address = models.CharField(max_length=255)
     description = models.TextField()
