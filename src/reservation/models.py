@@ -3,19 +3,18 @@ from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 
 
-class ListingOwner(models.Model):
+class Listing(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
-    email = models.EmailField()
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    address = models.CharField(max_length=255)
+    description = models.TextField()
 
     def __str__(self):
         return self.name
 
 
 class Reservation(models.Model):
-    listing = models.ForeignKey(ListingOwner, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    address = models.TextField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
