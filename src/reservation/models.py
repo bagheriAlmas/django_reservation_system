@@ -22,3 +22,7 @@ class Reservation(models.Model):
     def __str__(self):
         return f"{self.listing.id} - {self.listing.name} - {self.name}"
 
+    def clean(self):
+        # Ensure end_time is greater than start_time
+        if self.start_time and self.end_time and self.start_time >= self.end_time:
+            raise ValidationError("End time must be greater than start time")
