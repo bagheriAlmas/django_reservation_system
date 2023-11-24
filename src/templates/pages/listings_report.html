@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}
+    Listing Report
+{% endblock %}
+
+{% block content %}
+    <div id="accordion">
+        {% for listing in listings %}
+            <div class="card">
+                <div class="card-header" id="heading{{ listing.id }}">
+                    <h5 class="mb-0">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-left">
+                                        <button class="btn btn-link collapsed" data-toggle="collapse"
+                                                data-target="#collapse{{ listing.id }}"
+                                                aria-expanded="false" aria-controls="collapse{{ listing.id }}">
+                                            {{ listing.name }}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-6" style="align-self: center; text-align: right;">
+                                    <div class="text-right ">
+                                        <h6 class="font-weight-light">{{ listing.address | truncatewords:15 }}</h6>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </h5>
+                </div>
+                <div id="collapse{{ listing.id }}" class="collapse" aria-labelledby="heading{{ listing.id }}"
+                     data-parent="#accordion">
+                    <div class="card-body">
+
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Customer Name</th>
+                                <th scope="col">Start Date</th>
+                                <th scope="col">End Date</th>
+                                <th scope="col">Days</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for reservation in listing.reservation_set.all %}
+                                <tr>
+                                    <th scope="row">{{ forloop.counter }}</th>
+                                    <td>{{ reservation.name }}</td>
+                                    <td>{{ reservation.start_date }}</td>
+                                    <td>{{ reservation.end_date }}</td>
+                                    <td>{{ reservation.get_difference_date_days }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
