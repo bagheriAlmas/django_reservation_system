@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
@@ -68,3 +69,8 @@ def add_reservation(request):
 def is_listing_available_for_reservation(listing, start_date, end_date):
     available_listings = get_listings_in_date_range(start_date, end_date)
     return listing.id in available_listings.values_list('id', flat=True)
+
+@api_view(['GET'])
+def overview_reports(request):
+    listings = Listing.objects.all()
+    return render(request, 'pages/listings_report.html', {"listings": listings})
