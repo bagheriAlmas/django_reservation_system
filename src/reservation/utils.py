@@ -24,13 +24,14 @@ def get_listings_in_date_range(start_date, end_date):
 
 
 def validate_input_dates(start_date, end_date):
+    if start_date is None or end_date is None:
+        return {'start_date': 'is required.', 'end_date': 'is required.'}
+
     start_date, end_date = parse_dates(start_date,end_date)
 
     if start_date < datetime.today().date() or end_date < datetime.today().date():
         return {'date error': 'The selected day must not be past date.',}
 
-    if start_date is None or end_date is None:
-        return {'start_date': 'is required.', 'end_date': 'is required.'}
 
     if start_date > end_date:
         return {'error': 'Start date must be before end date.'}
