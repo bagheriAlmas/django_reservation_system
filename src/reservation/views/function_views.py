@@ -27,7 +27,7 @@ def show_all_listings(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def show_all_available_listings(request):
     start_date, end_date = request.data.get('start_date'), request.data.get('end_date')
 
