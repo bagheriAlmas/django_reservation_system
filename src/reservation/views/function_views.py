@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from reservation.models import Listing
-from reservation.serializers import ListingSerializer, ReservationSerializer
+from reservation.serializers import ListingSerializer, ReservationSerializer, YourQuerySerializer
 from reservation.utils import validate_input_dates, parse_dates, get_listings_in_date_range
 
 @api_view(['GET'])
@@ -27,9 +27,45 @@ def show_all_listings(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['GET', 'POST'])
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[
+        openapi.Parameter(
+            name='start_date',
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            format=openapi.FORMAT_DATE,
+            description='Start date for availability search',
+        ),
+        openapi.Parameter(
+            name='end_date',
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            format=openapi.FORMAT_DATE,
+            description='End date for availability search',
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description='OK',
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'count': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'next': openapi.Schema(type=openapi.TYPE_STRING),
+                    'previous': openapi.Schema(type=openapi.TYPE_STRING),
+                    'results': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_OBJECT)),
+                },
+            ),
+        ),
+        400: 'Bad Request',
+        500: 'Internal Server Error',
+    },
+)
+@api_view(['GET'])
 def show_all_available_listings(request):
-    start_date, end_date = request.data.get('start_date'), request.data.get('end_date')
+    start_date, end_date = request.query_params.get('start_date'), request.query_params.get('end_date')
 
     error_response = validate_input_dates(start_date, end_date)
     if error_response:
@@ -51,6 +87,22 @@ def show_all_available_listings(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'listing': openapi.Schema(type=openapi.TYPE_INTEGER),
+            'start_date': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            'end_date': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+        },
+        required=['listing', 'start_date', 'end_date'],
+    ),
+    responses={
+        201: 'Created',
+        400: 'Bad Request',
+    },
+)
 @api_view(['POST'])
 def add_reservation(request):
     listing_id, start_date, end_date = request.data.get('listing'), request.data.get('start_date'), request.data.get(
