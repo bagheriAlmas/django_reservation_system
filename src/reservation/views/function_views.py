@@ -2,15 +2,15 @@ from django.shortcuts import render
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from reservation.models import Listing
-from reservation.serializers import ListingSerializer, ReservationSerializer, YourQuerySerializer
+from reservation.serializers import ListingSerializer, ReservationSerializer
 from reservation.utils import validate_input_dates, parse_dates, get_listings_in_date_range
+
 
 @api_view(['GET'])
 def show_all_listings(request):
@@ -25,7 +25,6 @@ def show_all_listings(request):
         return paginator.get_paginated_response(serializer.data)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 @swagger_auto_schema(
