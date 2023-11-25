@@ -14,7 +14,7 @@ class Listing(models.Model):
 
 
 class Reservation(models.Model):
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, related_name='reservations', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
