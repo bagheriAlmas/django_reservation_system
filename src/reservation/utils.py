@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.db.models import Q
+
 from .models import Listing
 
 
@@ -24,14 +25,13 @@ def get_listings_in_date_range(start_date, end_date):
 
 
 def validate_input_dates(start_date, end_date):
+    start_date, end_date = parse_dates(start_date, end_date)
     if start_date is None or end_date is None:
-        return {'start_date': 'is required.', 'end_date': 'is required.'}
-
-    start_date, end_date = parse_dates(start_date,end_date)
+        return {'start_date': 'is required and must be in the format YYYY-MM-DD.',
+                'end_date': 'is required and must be in the format YYYY-MM-DD.'}
 
     if start_date < datetime.today().date() or end_date < datetime.today().date():
-        return {'date error': 'The selected day must not be past date.',}
-
+        return {'date error': 'The selected day must not be past date.', }
 
     if start_date > end_date:
         return {'error': 'Start date must be before end date.'}
@@ -41,7 +41,11 @@ def validate_input_dates(start_date, end_date):
 
     return None
 
+
 def parse_dates(start_date, end_date):
-    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-    return start_date, end_date
+    try:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        return start_date, end_date
+    except ValueError as e:
+        return None, None
