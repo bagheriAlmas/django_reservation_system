@@ -15,9 +15,9 @@ def is_valid_date_format(date_string):
 
 def get_listings_in_date_range(start_date, end_date):
     unavailable_listings = Listing.objects.filter(
-        Q(reservation__start_date__lte=start_date, reservation__end_date__gte=start_date) |
-        Q(reservation__start_date__lte=end_date, reservation__end_date__gte=end_date) |
-        Q(reservation__start_date__gte=start_date, reservation__end_date__lte=end_date)
+        Q(reservations__start_date__lte=start_date, reservations__end_date__gte=start_date) |
+        Q(reservations__start_date__lte=end_date, reservations__end_date__gte=end_date) |
+        Q(reservations__start_date__gte=start_date, reservations__end_date__lte=end_date)
     )
     available_listings = Listing.objects.exclude(id__in=unavailable_listings.values_list('id', flat=True))
     return available_listings
