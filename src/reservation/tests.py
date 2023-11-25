@@ -1,13 +1,12 @@
-import json
-
 from django.contrib.auth.models import User
 from .utils import get_listings_in_date_range
-from datetime import datetime, timedelta
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
 from .models import Listing, Reservation
 from .serializers import ListingSerializer
+from datetime import datetime, timedelta
+
 
 class ShowAllListingsTestCase(APITestCase):
     def setUp(self):
@@ -42,8 +41,6 @@ class ShowAllListingsTestCase(APITestCase):
         self.assertEqual(response.data['results'], serializer.data)
 
 
-
-
 class ShowAllAvailableListingsTestCase(APITestCase):
     def setUp(self):
         # Create a user for the owner field
@@ -52,12 +49,6 @@ class ShowAllAvailableListingsTestCase(APITestCase):
         # Create some sample listings for testing and associate them with the user
         Listing.objects.create(owner=self.user, name='Listing 1', address='Address 1', description='Description 1')
         Listing.objects.create(owner=self.user, name='Listing 2', address='Address 2', description='Description 2')
-        # ...
-
-    from datetime import datetime, timedelta
-    import json
-
-    # ...
 
     def test_show_all_available_listings(self):
         # Set up input data for testing
@@ -69,7 +60,7 @@ class ShowAllAvailableListingsTestCase(APITestCase):
         url = reverse('available-listing-list')
 
         # Make a POST request to the endpoint with input data in the request body
-        response = self.client.post(url, data=json.dumps(input_data), content_type='application/json')
+        response = self.client.get(url, data=input_data)
 
         # Assert that the response status code is 200 (OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -77,7 +68,6 @@ class ShowAllAvailableListingsTestCase(APITestCase):
         # Optionally, you can further check the structure of the response data
         # For example, if you have a serializer for the Listing model:
         available_listings = get_listings_in_date_range(start_date, end_date)
-
 
         serializer = ListingSerializer(available_listings, many=True)
 
