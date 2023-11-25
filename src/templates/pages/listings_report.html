@@ -47,7 +47,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for reservation in listing.reservation_set.all %}
+                            {% for reservation in listing.reservations.all %}
                                 <tr>
                                     <th scope="row">{{ forloop.counter }}</th>
                                     <td>{{ reservation.name }}</td>
