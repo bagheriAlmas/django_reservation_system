@@ -100,3 +100,47 @@ class ShowAllAvailableListingsTestCase(APITestCase):
         self.assertIn('start_date', response.data)
         self.assertIn('end_date', response.data)
 
+
+class AddReservationTestCase(APITestCase):
+    def setUp(self):
+        # Create a user for the owner field
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        # Create a sample listing for testing and associate it with the user
+        self.listing = Listing.objects.create(
+            owner=self.user,
+            name='Sample Listing',
+            address='Sample Address',
+            description='Sample Description'
+        )
+
+    def test_add_reservation(self):
+        # Login the user (assuming you have authentication in place)
+        self.client.login(username='testuser', password='testpassword')
+
+        # Set up input data for testing
+        start_date = datetime.now().date()
+        end_date = start_date + timedelta(days=7)
+        input_data = {
+            'listing': self.listing.id,
+            'name': 'Mahdi Bagheri',
+            'start_date': str(start_date),
+            'end_date': str(end_date)
+        }
+
+        # Define the URL for the API endpoint
+        url = reverse('add-reservation')
+
+        # Make a POST request to the endpoint with input data
+        response = self.client.post(url, data=input_data, format='json')
+
+        # Assert that the response status code is 201 (Created)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Optionally, you can further check the structure of the response data
+        # For example, if you have a serializer for the Reservation model:
+        from reservation.serializers import ReservationSerializer
+        reservation = Reservation.objects.get(id=response.data['id'])
+        serializer = ReservationSerializer(reservation)
+
+        self.assertEqual(response.data, serializer.data)
