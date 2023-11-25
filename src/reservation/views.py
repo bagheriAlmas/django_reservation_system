@@ -35,10 +35,18 @@ def show_all_available_listing(request):
 
     start_date, end_date = parse_dates(start_date, end_date)
 
-    available_listings = get_listings_in_date_range(start_date, end_date)
+    try:
+        paginator = PageNumberPagination()
+        paginator.page_size = 3
 
-    serializer = ListingSerializer(available_listings, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+        available_listings = get_listings_in_date_range(start_date, end_date)
+
+        paginated_listing = paginator.paginate_queryset(available_listings, request)
+
+        serializer = ListingSerializer(paginated_listing, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -69,6 +77,7 @@ def add_reservation(request):
 def is_listing_available_for_reservation(listing, start_date, end_date):
     available_listings = get_listings_in_date_range(start_date, end_date)
     return listing.id in available_listings.values_list('id', flat=True)
+
 
 @api_view(['GET'])
 def overview_reports(request):
