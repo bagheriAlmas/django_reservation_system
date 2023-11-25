@@ -16,7 +16,6 @@ from reservation.utils import validate_input_dates, parse_dates, get_listings_in
 def show_all_listings(request):
     try:
         paginator = PageNumberPagination()
-        paginator.page_size = 10
 
         listings = Listing.objects.all()
         paginated_listings = paginator.paginate_queryset(listings, request)
@@ -74,7 +73,6 @@ def show_all_available_listings(request):
 
     try:
         paginator = PageNumberPagination()
-        paginator.page_size = 3
 
         available_listings = get_listings_in_date_range(start_date, end_date)
 

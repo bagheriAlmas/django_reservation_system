@@ -9,14 +9,9 @@ from ..serializers import ListingSerializer, ReservationSerializer
 from ..utils import validate_input_dates, parse_dates, get_listings_in_date_range
 
 
-class CustomPageNumberPagination(pagination.PageNumberPagination):
-    page_size = 3
-
-
 class ShowAllListings(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = Listing.objects.all()
     serializer_class = ListingSerializer
-    pagination_class = CustomPageNumberPagination
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -26,11 +21,10 @@ class ShowAllListings(mixins.ListModelMixin, generics.GenericAPIView):
 
 class ShowAllAvailableListings(mixins.ListModelMixin, generics.GenericAPIView):
     serializer_class = ListingSerializer
-    pagination_class = CustomPageNumberPagination
 
     def get_queryset(self):
-        start_date = self.request.data.get('start_date')
-        end_date = self.request.data.get('end_date')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
 
         error_response = validate_input_dates(start_date, end_date)
         if error_response:
