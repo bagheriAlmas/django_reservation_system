@@ -26,7 +26,7 @@ def show_all_listings(request):
 
 
 @api_view(['GET'])
-def show_all_available_listing(request):
+def show_all_available_listings(request):
     start_date, end_date = request.data.get('start_date'), request.data.get('end_date')
 
     error_response = validate_input_dates(start_date, end_date)
