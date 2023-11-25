@@ -21,10 +21,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    # External Packages
     'rest_framework',
     'bootstrap5',
-
+    'drf_yasg',
+    # Internal Apps
     'reservation.apps.ReservationConfig',
 ]
 
