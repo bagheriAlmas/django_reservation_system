@@ -17,8 +17,6 @@ class ShowAllListings(mixins.ListModelMixin, generics.GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
-# ...
-
 class ShowAllAvailableListings(mixins.ListModelMixin, generics.GenericAPIView):
     serializer_class = ListingSerializer
 
@@ -41,9 +39,8 @@ class AddReservationView(mixins.CreateModelMixin, generics.GenericAPIView):
     serializer_class = ReservationSerializer
 
     def post(self, request, *args, **kwargs):
-        listing_id = request.data.get('listing')
-        start_date = request.data.get('start_date')
-        end_date = request.data.get('end_date')
+        listing_id, start_date, end_date = request.data.get('listing'), request.data.get(
+            'start_date'), request.data.get('end_date')
 
         listing = get_object_or_404(Listing, pk=listing_id)
 
@@ -68,7 +65,8 @@ def is_listing_available_for_reservation(listing, start_date, end_date):
 class OverviewReportsView(View):
     template_name = 'pages/listings_report.html'
 
-    def get_context_data(self, **kwargs):
+    @staticmethod
+    def get_context_data(**kwargs):
         queryset = Listing.objects.all().select_related("owner")
         return {'listings': queryset}
 
