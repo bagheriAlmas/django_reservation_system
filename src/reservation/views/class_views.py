@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 from django.views import View
 from rest_framework import generics, mixins, pagination, serializers
@@ -64,12 +65,24 @@ def is_listing_available_for_reservation(listing, start_date, end_date):
 
 class OverviewReportsView(View):
     template_name = 'pages/listings_report.html'
+    items_per_page = 10
 
-    @staticmethod
-    def get_context_data(**kwargs):
+    def get_context_data(self, page):
         queryset = Listing.objects.all().select_related("owner")
-        return {'listings': queryset}
+        paginator = Paginator(queryset, self.items_per_page)
+
+        try:
+            listings = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page.
+            listings = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range (e.g. 9999), deliver last page of results.
+            listings = paginator.page(paginator.num_pages)
+
+        return {'listings': listings}
 
     def get(self, request, *args, **kwargs):
-        context = self.get_context_data()
+        page = request.GET.get('page', 1)
+        context = self.get_context_data(page)
         return render(request, self.template_name, context)
