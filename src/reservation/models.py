@@ -24,7 +24,7 @@ class Reservation(models.Model):
 
     def clean(self):
         # Ensure end_time is greater than start_time
-        if self.start_date and self.end_date and self.start_date >= self.end_date:
+        if self.start_date and self.end_date and self.start_date > self.end_date:
             raise ValidationError("End time must be greater than start time")
 
     def get_difference_date_days(self):
