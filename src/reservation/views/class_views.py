@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 from django.views import View
+from django.views.generic import ListView
 from rest_framework import generics, mixins, pagination, serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -86,3 +87,35 @@ class OverviewReportsView(View):
         page = request.GET.get('page', 1)
         context = self.get_context_data(page)
         return render(request, self.template_name, context)
+
+
+class ListingDetailsView(ListView):
+    model = Listing
+    template_name = 'pages/listing_details.html'
+    context_object_name = 'listings'
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get the page number from the request's GET parameters
+        page = self.request.GET.get('page', 1)
+
+        # Create a Paginator object
+        paginator = Paginator(context['listings'].reservations.all(), self.paginate_by)
+
+        try:
+            # Get the specified page
+            reservations_page = paginator.page(page)
+        except PageNotAnInteger:
+            # If the page parameter is not an integer, show the first page
+            reservations_page = paginator.page(1)
+        except EmptyPage:
+            # If the page is out of range, show the last page
+            reservations_page = paginator.page(paginator.num_pages)
+
+        context['reservations_page'] = reservations_page
+        return context
+
+
+listing_details_view = ListingDetailsView.as_view()
