@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -133,4 +134,45 @@ def is_listing_available_for_reservation(listing, start_date, end_date):
 @api_view(['GET'])
 def overview_reports(request):
     listings = Listing.objects.all()
+    listings_per_page = 10
+    # Get the current page number from the request's GET parameters
+    page = request.GET.get('page', 1)
+
+    # Paginate the listings
+    paginator = Paginator(listings, listings_per_page)
+    try:
+        listings = paginator.page(page)
+    except PageNotAnInteger:
+        listings = paginator.page(1)
+    except EmptyPage:
+        listings = paginator.page(paginator.num_pages)
     return render(request, 'pages/listings_report.html', {"listings": listings})
+
+
+@api_view(['GET'])
+def listing_details(request, pk):
+    listings = Listing.objects.get(pk=pk)
+    listings_per_page = 10
+
+    # Get the page number from the request's GET parameters
+    page = request.GET.get('page', 1)
+
+    # Create a Paginator object
+    paginator = Paginator(listings.reservations.all(), listings_per_page)
+
+    try:
+        # Get the specified page
+        reservations_page = paginator.page(page)
+    except PageNotAnInteger:
+        # If the page parameter is not an integer, show the first page
+        reservations_page = paginator.page(1)
+    except EmptyPage:
+        # If the page is out of range, show the last page
+        reservations_page = paginator.page(paginator.num_pages)
+
+    context = {
+        'listings': listings,
+        'reservations_page': reservations_page,
+    }
+
+    return render(request, 'pages/listing_details.html', context)
