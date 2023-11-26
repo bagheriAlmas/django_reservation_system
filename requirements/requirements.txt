@@ -6,6 +6,7 @@ coreapi==2.3.3
 coreschema==0.0.4
 Django==4.2.7
 django-bootstrap-v5==1.0.11
+django-redis==5.4.0
 djangorestframework==3.14.0
 drf-yasg==1.21.7
 idna==3.5
@@ -19,6 +20,7 @@ psycopg2==2.9.9
 psycopg2-binary==2.9.9
 pytz==2023.3.post1
 PyYAML==6.0.1
+redis==5.0.1
 requests==2.31.0
 simplejson==3.19.2
 soupsieve==2.5
