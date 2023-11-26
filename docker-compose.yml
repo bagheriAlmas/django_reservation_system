@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   app:
+    container_name: django_listing_system
     build:
       context: .
     command: >
@@ -14,6 +15,7 @@ services:
 
   db:
     image: postgres:16.0-alpine3.18
+    container_name: postgres_listing_system
     ports:
       - "5432:5432"
     volumes:
@@ -22,6 +24,12 @@ services:
       - POSTGRES_DB=reservation_system_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+
+  redis:
+    image: redis:7.2.3
+    container_name: redis_listing_system
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres-data:
