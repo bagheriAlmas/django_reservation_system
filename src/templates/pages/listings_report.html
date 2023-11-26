@@ -4,63 +4,127 @@
 {% endblock %}
 
 {% block content %}
-    <div id="accordion">
-        {% for listing in listings %}
-            <div class="card">
-                <div class="card-header" id="heading{{ listing.id }}">
-                    <h5 class="mb-0">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="text-left">
-                                        <button class="btn btn-link collapsed" data-toggle="collapse"
-                                                data-target="#collapse{{ listing.id }}"
-                                                aria-expanded="false" aria-controls="collapse{{ listing.id }}">
-                                            {{ listing.name }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-6" style="align-self: center; text-align: right;">
-                                    <div class="text-right ">
-                                        <h6 class="font-weight-light">{{ listing.address | truncatewords:15 }}</h6>
 
+    <div class="card">
+        <div class="card-header">
+            Listings Reports
+        </div>
+        <div class="card-body">
+            <div id="accordion">
+                {% for listing in listings %}
+                    <div class="card m-1">
+                        <div class="card-header" id="heading{{ listing.id }}">
+                            <h5 class="mb-0">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="text-left">
+                                                <button class="btn btn-link collapsed" data-toggle="collapse"
+                                                        data-target="#collapse{{ listing.id }}"
+                                                        aria-expanded="false" aria-controls="collapse{{ listing.id }}">
+                                                    {{ listing.name }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-6" style="align-self: center; text-align: right;">
+                                            <div class="text-right ">
+                                                <h6 class="font-weight-light">{{ listing.address | truncatewords:15 }}</h6>
+
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
+
+                            </h5>
+                        </div>
+                        <div id="collapse{{ listing.id }}" class="collapse" aria-labelledby="heading{{ listing.id }}"
+                             data-parent="#accordion">
+                            <div class="card-body">
+
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Customer Name</th>
+                                        <th scope="col">Start Date</th>
+                                        <th scope="col">End Date</th>
+                                        <th scope="col">Days</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for reservation in listing.reservations.all|slice:":10" %}
+
+                                        <tr>
+                                            <th scope="row">{{ forloop.counter }}</th>
+                                            <td>{{ reservation.name }}</td>
+                                            <td>{{ reservation.start_date }}</td>
+                                            <td>{{ reservation.end_date }}</td>
+                                            <td>{{ reservation.get_difference_date_days }}</td>
+                                        </tr>
+                                    {% endfor %}
+
+                                    </tbody>
+
+                                </table>
+                                {% if listing.reservations.count > 10 %}
+                                    <!-- Display a button or any other content to show more items -->
+                                    Your records are more than 10 items, to show all records,
+                                    <a type="button" class="btn btn-light"
+                                       href="{% url 'listing-details' listing.id %}">Click
+                                        Here!</a>
+                                {% endif %}
                             </div>
                         </div>
-
-
-                    </h5>
-                </div>
-                <div id="collapse{{ listing.id }}" class="collapse" aria-labelledby="heading{{ listing.id }}"
-                     data-parent="#accordion">
-                    <div class="card-body">
-
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Customer Name</th>
-                                <th scope="col">Start Date</th>
-                                <th scope="col">End Date</th>
-                                <th scope="col">Days</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for reservation in listing.reservations.all %}
-                                <tr>
-                                    <th scope="row">{{ forloop.counter }}</th>
-                                    <td>{{ reservation.name }}</td>
-                                    <td>{{ reservation.start_date }}</td>
-                                    <td>{{ reservation.end_date }}</td>
-                                    <td>{{ reservation.get_difference_date_days }}</td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
-                </div>
+                {% endfor %}
             </div>
-        {% endfor %}
+        </div>
+        <div class="card-footer">
+            {#    Pagination#}
+            <div class="d-flex justify-content-center">
+                <nav aria-label="...">
+                    <ul class="pagination">
+                        {% if listings.has_previous %}
+
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ listings.previous_page_number }}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            </li>
+
+                        {% endif %}
+
+
+                        {% for i in listings.paginator.page_range %}
+                            {% if i == listings.number %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">{{ i }} <span class="sr-only"></span></a>
+                                <li>
+                                    {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if listings.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ listings.next_page_number }}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
     </div>
+
+
+
+
+
 {% endblock %}
