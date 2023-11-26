@@ -6,7 +6,21 @@
 {% block content %}
     <div class="card">
         <div class="card-header">
-            Table of {{ listings.name }}
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-left">
+                            Table of {{ listings.name }}
+                        </div>
+                    </div>
+                    <div class="col-6" style="align-self: center; text-align: right;">
+                        <div class="text-right ">
+                             Number of Rows : {{ listings.reservations.count }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
         <div class="card-body">
             <table class="table">
