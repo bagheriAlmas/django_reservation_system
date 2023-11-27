@@ -18,7 +18,7 @@ def available_listings_in_date_range_query(start_date, end_date):
 
 
 
-def validate_input_dates(start_date, end_date):
+def parse_input_dates(start_date, end_date):
     if start_date is None or end_date is None:
         raise ValidationError('Both start_date and end_date are required.')
 

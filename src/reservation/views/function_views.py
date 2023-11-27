@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from reservation.models import Listing
 from reservation.serializers import ListingSerializer, ReservationSerializer
 from reservation.swagger_decorators import available_listings_swagger_decorator, add_reservation_swagger_decorator
-from reservation.utils import validate_input_dates, available_listings_in_date_range_query
+from reservation.utils import parse_input_dates, available_listings_in_date_range_query
 
 
 def listing_serializers_paginate_response(request, queryset):
@@ -35,7 +35,6 @@ def listing_paginated_items(request, queryset):
     return paginated_items
 
 
-
 @api_view(['GET'])
 def show_all_listings(request):
     listings = Listing.objects.all()
@@ -47,12 +46,13 @@ def show_all_listings(request):
 @api_view(['GET'])
 def show_all_available_listings(request):
     try:
-        start_date, end_date = validate_input_dates(request.query_params.get('start_date') or None, request.query_params.get('end_date') or None)
+        start_date, end_date = parse_input_dates(request.query_params.get('start_date') or None,
+                                                 request.query_params.get('end_date') or None)
     except ValidationError as e:
-        return Response({"error":e.detail})
+        return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
 
-    available_listings = available_listings_in_date_range_query(start_date, end_date)
-    response = listing_serializers_paginate_response(request, available_listings)
+    listings_queries = available_listings_in_date_range_query(start_date, end_date)
+    response = listing_serializers_paginate_response(request, listings_queries)
     return response
 
 
@@ -64,14 +64,15 @@ def add_reservation(request):
     listing = get_object_or_404(Listing, pk=listing_id)
 
     try:
-        start_date, end_date = validate_input_dates(request.query_params.get('start_date') or None, request.query_params.get('end_date') or None)
+        start_date, end_date = parse_input_dates(request.query_params.get('start_date') or None,
+                                                 request.query_params.get('end_date') or None)
     except ValidationError as e:
-        return Response({"error":e.detail})
+        return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
 
     available_listings = available_listings_in_date_range_query(start_date, end_date)
     if not listing.id in available_listings.values_list('id', flat=True):
         return Response({'error': f'Listing not available for reservation until {end_date}.'},
-                        status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_404_NOT_FOUND)
 
     serializer = ReservationSerializer(data=request.data)
     if serializer.is_valid():
