@@ -19,8 +19,6 @@ logger = logging.getLogger(__name__)
 def show_all_listings(request):
     listings = Listing.objects.all().select_related('owner')
     response = listing_serializers_paginate_response(request, listings)
-    logger.info('show_all_listings executed successfully')
-
     return response
 
 
@@ -28,10 +26,12 @@ def show_all_listings(request):
 @api_view(['GET'])
 def show_all_available_listings(request):
     try:
-        start_date, end_date = parse_input_dates(request.query_params.get('start_date') or None,
-                                                 request.query_params.get('end_date') or None)
+        start_date, end_date = parse_input_dates(request.query_params.get('start_date'),
+                                                 request.query_params.get('end_date'))
     except ValidationError as e:
         return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response({"error": "Invalid date range"}, status=status.HTTP_400_BAD_REQUEST)
 
     listings_queries = available_listings_in_date_range_query(start_date, end_date)
     response = listing_serializers_paginate_response(request, listings_queries)
@@ -46,26 +46,28 @@ def add_reservation(request):
     listing = get_object_or_404(Listing, pk=listing_id)
 
     try:
-        start_date, end_date = parse_input_dates(request.data.get('start_date') or None,
-                                                 request.data.get('end_date') or None)
+        start_date, end_date = parse_input_dates(request.data.get('start_date'),
+                                                 request.data.get('end_date'))
     except ValidationError as e:
         logger.info('Input dates has not correct format')
         return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response({"error": "Invalid date range"}, status=status.HTTP_400_BAD_REQUEST)
 
     available_listings = available_listings_in_date_range_query(start_date, end_date)
     if not listing.id in available_listings.values_list('id', flat=True):
-        logger.info('Failed to Reservation')
         return Response({'error': f'Listing not available for reservation until {end_date}.'},
                         status=status.HTTP_404_NOT_FOUND)
 
     serializer = ReservationSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        instance = serializer.save()
         cache.delete(listing_id)
-        logger.info('Reserved successfully')
+        logger.info(f'Listing id: {listing_id}, Added new reservation.')
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
+        logger.info(f'Listing id: {listing_id}, Failed to add new reservation.')
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -73,7 +75,7 @@ def add_reservation(request):
 def overview_reports(request):
     listings = Listing.objects.all()
     paginated_listings = listing_paginated_items(request, listings)
-    logger.info('overview_reports executed successfully')
+    logger.info('Report fetch successfully.')
     return render(request, 'pages/listings_report.html', {"listings": paginated_listings})
 
 
@@ -81,12 +83,9 @@ def overview_reports(request):
 def listing_details(request, pk):
     if cache.get(pk):
         listing = cache.get(pk)
-        logger.info('Load data from cache')
-
     else:
         listing = get_object_or_404(Listing, pk=pk)
         cache.set(pk, listing)
-        logger.info('Load data from db')
 
     reservations = listing.reservations.all()
     paginated_reservations = listing_paginated_items(request, reservations)
@@ -96,5 +95,5 @@ def listing_details(request, pk):
         'reservations_page': paginated_reservations,
     }
 
-    logger.info('listing_details executed successfully')
+    logger.info(f'Listing: {pk}, Report fetch successfully.')
     return render(request, 'pages/listing_details.html', context)

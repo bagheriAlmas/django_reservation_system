@@ -31,18 +31,15 @@ def available_listings_in_date_range_query(start_date, end_date):
 
 def parse_input_dates(start_date, end_date):
     if start_date is None or end_date is None:
-        logger.info('One of the dates are not entered')
         raise ValidationError('Both start_date and end_date are required.')
 
     start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
     end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
     if start_date < datetime.today().date() or end_date < datetime.today().date():
-        logger.info('The selected dates have passed')
         raise ValidationError('The selected day must not be a past date.')
 
     if start_date > end_date:
-        logger.info('start_date is before end_date')
         raise ValidationError('Start date must be before end date.')
     return start_date, end_date
 
@@ -52,8 +49,8 @@ def listing_serializers_paginate_response(request, queryset):
     try:
         paginated_listings = paginator.paginate_queryset(queryset, request)
     except Exception as e:
-        logger.info('Invalid page number called')
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        logger.info(f' Page Number is Invalid. {str(e)}')
+        return Response({'error': 'Invalid page number.'}, status=status.HTTP_400_BAD_REQUEST)
     serializer = ListingSerializer(paginated_listings, many=True)
     return paginator.get_paginated_response(serializer.data)
 
