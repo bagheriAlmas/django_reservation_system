@@ -18,4 +18,4 @@ class ListingSerializer(serializers.ModelSerializer):
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
-        fields = "__all__"
+        fields = ['listing', 'name', 'start_date', 'end_date']
