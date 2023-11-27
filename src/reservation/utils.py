@@ -1,9 +1,14 @@
+from django.core.paginator import PageNotAnInteger, EmptyPage, Paginator
 from django.db.models import Q
 from datetime import datetime
 
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from .models import Listing
+from .serializers import ListingSerializer
 
 
 def available_listings_in_date_range_query(start_date, end_date):
@@ -33,3 +38,24 @@ def parse_input_dates(start_date, end_date):
     return start_date, end_date
 
 
+def listing_serializers_paginate_response(request, queryset):
+    paginator = PageNumberPagination()
+    try:
+        paginated_listings = paginator.paginate_queryset(queryset, request)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    serializer = ListingSerializer(paginated_listings, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+
+def listing_paginated_items(request, queryset):
+    page = request.GET.get('page', 1)
+    paginator = Paginator(queryset, 10)
+
+    try:
+        paginated_items = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_items = paginator.page(1)
+    except EmptyPage:
+        paginated_items = paginator.page(paginator.num_pages)
+    return paginated_items

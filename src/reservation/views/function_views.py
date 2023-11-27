@@ -1,38 +1,15 @@
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.cache import cache
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from reservation.models import Listing
-from reservation.serializers import ListingSerializer, ReservationSerializer
+from reservation.serializers import ReservationSerializer
 from reservation.swagger_decorators import available_listings_swagger_decorator, add_reservation_swagger_decorator
-from reservation.utils import parse_input_dates, available_listings_in_date_range_query
-
-
-def listing_serializers_paginate_response(request, queryset):
-    paginator = PageNumberPagination()
-    try:
-        paginated_listings = paginator.paginate_queryset(queryset, request)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    serializer = ListingSerializer(paginated_listings, many=True)
-    return paginator.get_paginated_response(serializer.data)
-
-
-def listing_paginated_items(request, queryset):
-    page = request.GET.get('page', 1)
-    paginator = Paginator(queryset, 10)
-
-    try:
-        paginated_items = paginator.page(page)
-    except PageNotAnInteger:
-        paginated_items = paginator.page(1)
-    except EmptyPage:
-        paginated_items = paginator.page(paginator.num_pages)
-    return paginated_items
+from reservation.utils import (parse_input_dates, available_listings_in_date_range_query,
+                               listing_serializers_paginate_response, listing_paginated_items)
 
 
 @api_view(['GET'])
@@ -59,13 +36,12 @@ def show_all_available_listings(request):
 @add_reservation_swagger_decorator
 @api_view(['POST'])
 def add_reservation(request):
-    listing_id, start_date, end_date = request.data.get('listing'), request.data.get('start_date'), request.data.get(
-        'end_date')
+    listing_id = request.data.get('listing')
     listing = get_object_or_404(Listing, pk=listing_id)
 
     try:
-        start_date, end_date = parse_input_dates(request.query_params.get('start_date') or None,
-                                                 request.query_params.get('end_date') or None)
+        start_date, end_date = parse_input_dates(request.data.get('start_date') or None,
+                                                 request.data.get('end_date') or None)
     except ValidationError as e:
         return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -91,13 +67,13 @@ def overview_reports(request):
 
 @api_view(['GET'])
 def listing_details(request, pk):
-    listings = Listing.objects.get(pk=pk)
+    listing = get_object_or_404(Listing, pk=pk)
 
-    reservations = listings.reservations.all()
+    reservations = listing.reservations.all()
     paginated_reservations = listing_paginated_items(request, reservations)
 
     context = {
-        'listings': listings,
+        'listings': listing,
         'reservations_page': paginated_reservations,
     }
     return render(request, 'pages/listing_details.html', context)
