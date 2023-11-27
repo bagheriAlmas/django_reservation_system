@@ -67,7 +67,13 @@ def overview_reports(request):
 
 @api_view(['GET'])
 def listing_details(request, pk):
-    listing = get_object_or_404(Listing, pk=pk)
+    if cache.get(pk):
+        listing = cache.get(pk)
+        print("FROM CACHE")
+    else:
+        listing = get_object_or_404(Listing, pk=pk)
+        cache.set(pk, listing)
+        print("FROM THE DB")
 
     reservations = listing.reservations.all()
     paginated_reservations = listing_paginated_items(request, reservations)
