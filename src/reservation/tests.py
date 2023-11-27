@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from .utils import get_listings_in_date_range
+from .utils import available_listings_in_date_range_query
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
@@ -67,7 +67,7 @@ class ShowAllAvailableListingsTestCase(APITestCase):
 
         # Optionally, you can further check the structure of the response data
         # For example, if you have a serializer for the Listing model:
-        available_listings = get_listings_in_date_range(start_date, end_date)
+        available_listings = available_listings_in_date_range_query(start_date, end_date)
 
         serializer = ListingSerializer(available_listings, many=True)
 
