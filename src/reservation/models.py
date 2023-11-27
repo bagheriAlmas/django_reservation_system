@@ -27,6 +27,7 @@ class Reservation(models.Model):
         if self.start_date and self.end_date and self.start_date > self.end_date:
             raise ValidationError("End time must be greater than start time")
 
-    def get_difference_date_days(self):
+    @property
+    def duration(self):
         difference = self.end_date - self.start_date
         return difference.days + 1
