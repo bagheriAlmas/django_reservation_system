@@ -8,10 +8,9 @@ RUN apk update \
 RUN apk add --no-cache postgresql-libs postgresql-dev
 
 COPY ./src /src
-COPY requirements /requirements
-
+COPY requirements.txt requirements.txt
 WORKDIR src
 EXPOSE 8000
 
-RUN pip install -r /requirements/requirements.txt
+RUN pip install -r /requirements.txt
 ENV PATH="/py/bin:$PATH"
