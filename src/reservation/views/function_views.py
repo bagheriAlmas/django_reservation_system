@@ -2,10 +2,12 @@ import logging
 
 from django.core.cache import cache
 from django.shortcuts import render
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from reservation.models import Listing
 from reservation.serializers import ReservationSerializer
@@ -17,6 +19,9 @@ logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 def show_all_listings(request):
+    """
+    Show All Listings List
+    """
     listings = Listing.objects.all().select_related('owner')
     response = listing_serializers_paginate_response(request, listings)
     return response
@@ -25,6 +30,10 @@ def show_all_listings(request):
 @available_listings_swagger_decorator
 @api_view(['GET'])
 def show_all_available_listings(request):
+    """
+    Show Available Listings Between Two Ranges of Date
+    start_date and end_date sets as a query parameters
+    """
     try:
         start_date, end_date = parse_input_dates(request.query_params.get('start_date'),
                                                  request.query_params.get('end_date'))
@@ -42,6 +51,11 @@ def show_all_available_listings(request):
 @add_reservation_swagger_decorator
 @api_view(['POST'])
 def add_reservation(request):
+    """
+    Add listing reservation
+    Customers can check available rooms between two dates and reserve them
+    listing_id, customer_name, start_date, and end_date are filled in request body
+    """
     listing_id = request.data.get('listing')
     listing = get_object_or_404(Listing, pk=listing_id)
 
@@ -69,7 +83,6 @@ def add_reservation(request):
     else:
         logger.info(f'Listing id: {listing_id}, Failed to add new reservation.')
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['GET'])
 def overview_reports(request):

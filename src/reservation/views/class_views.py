@@ -7,13 +7,15 @@ from rest_framework.generics import ListAPIView, CreateAPIView, get_object_or_40
 from rest_framework.response import Response
 from reservation.models import Listing
 from reservation.serializers import ReservationSerializer, ListingSerializer
-from reservation.swagger_decorators import available_listings_swagger_decorator, add_reservation_swagger_decorator
 from reservation.utils import (parse_input_dates, available_listings_in_date_range_query,
                                listing_serializers_paginate_response, listing_paginated_items)
 
 logger = logging.getLogger(__name__)
 
 class ShowAllListingsView(ListAPIView):
+    """
+    Show All Listings List
+    """
     queryset = Listing.objects.all().select_related('owner')
     serializer_class = ListingSerializer
 
@@ -23,14 +25,20 @@ class ShowAllListingsView(ListAPIView):
         return response
 
 class ShowAllAvailableListingsView(ListAPIView):
+    """
+    Show Available Listings Between Two Ranges of Date
+    start_date and end_date sets as a query parameters
+    """
     serializer_class = ListingSerializer
 
     def get_queryset(self):
         try:
-            start_date, end_date = parse_input_dates(self.request.query_params.get('start_date') or None,
-                                                     self.request.query_params.get('end_date') or None)
+            start_date, end_date = parse_input_dates(self.request.query_params.get('start_date'),
+                                                     self.request.query_params.get('end_date'))
         except ValidationError as e:
             return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "Invalid date range"}, status=status.HTTP_400_BAD_REQUEST)
 
         return available_listings_in_date_range_query(start_date, end_date)
 
@@ -40,6 +48,11 @@ class ShowAllAvailableListingsView(ListAPIView):
         return response
 
 class AddReservationView(CreateAPIView):
+    """
+    Add listing reservation
+    Customers can check available rooms between two dates and reserve them
+    listing_id, customer_name, start_date, and end_date are filled in request body
+    """
     serializer_class = ReservationSerializer
 
     def create(self, request, *args, **kwargs):
@@ -47,11 +60,13 @@ class AddReservationView(CreateAPIView):
         listing = get_object_or_404(Listing, pk=listing_id)
 
         try:
-            start_date, end_date = parse_input_dates(request.data.get('start_date') or None,
-                                                     request.data.get('end_date') or None)
+            start_date, end_date = parse_input_dates(request.data.get('start_date'),
+                                                     request.data.get('end_date'))
         except ValidationError as e:
             logger.info('Input dates have incorrect format')
             return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "Invalid date range"}, status=status.HTTP_400_BAD_REQUEST)
 
         available_listings = available_listings_in_date_range_query(start_date, end_date)
         if listing.id not in available_listings.values_list('id', flat=True):
